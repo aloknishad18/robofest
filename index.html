@@ -1,0 +1,221 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AGRIBOT | Cinematic Object Viewer</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&family=Poppins:wght@400;600;700&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        brand: {
+                            bg: '#02050A',
+                            primary: '#00C2FF',
+                            accent: '#00E5FF',
+                            panel: 'rgba(5, 10, 18, 0.75)',
+                            border: 'rgba(0, 194, 255, 0.25)',
+                            textSecondary: '#8B9BB4'
+                        }
+                    },
+                    fontFamily: {
+                        sans: ['Inter', 'sans-serif'],
+                        display: ['Poppins', 'sans-serif'],
+                        mono: ['Space Mono', 'monospace']
+                    }
+                }
+            }
+        }
+    </script>
+    <link href="style.css" rel="stylesheet">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/gsap.min.js"></script>
+    <script type="importmap">
+        {
+            "imports": {
+                "three": "https://unpkg.com/three@0.160.0/build/three.module.js",
+                "three/addons/": "https://unpkg.com/three@0.160.0/examples/jsm/"
+            }
+        }
+    </script>
+</head>
+<body class="bg-brand-bg text-white overflow-hidden font-sans select-none antialiased">
+
+    <!-- Loading Screen -->
+    <div id="loading-screen" class="fixed inset-0 z-[100] bg-brand-bg flex flex-col items-center justify-center transition-opacity duration-1000">
+        <h1 class="font-display text-5xl font-bold tracking-[0.2em] mb-8 text-brand-primary drop-shadow-[0_0_15px_rgba(0,194,255,0.5)]">INITIALIZING</h1>
+        <div class="w-64 h-1 bg-gray-900 rounded overflow-hidden">
+            <div id="loading-bar" class="h-full bg-brand-primary w-0 shadow-[0_0_10px_#00C2FF] transition-all duration-300"></div>
+        </div>
+        <div class="mt-4 font-mono text-sm tracking-widest text-brand-accent animate-pulse"><span id="loading-text">0%</span></div>
+    </div>
+
+    <!-- 3D Canvas -->
+    <div id="canvas-container" class="absolute inset-0 z-0"></div>
+
+    <!-- Environmental Overlays -->
+    <div class="pointer-events-none absolute inset-0 z-10 grid-background opacity-40"></div>
+    <div class="pointer-events-none absolute inset-0 z-10 radial-vignette"></div>
+    <div class="pointer-events-none absolute inset-0 z-10 scan-line"></div>
+
+    <!-- HUD Overlay for 2D Labels and SVG Lines -->
+    <div id="hud-container" class="absolute inset-0 z-20 pointer-events-none overflow-hidden">
+        <svg id="hud-lines" class="absolute inset-0 w-full h-full pointer-events-none"></svg>
+        <div id="hud-labels" class="absolute inset-0 w-full h-full pointer-events-none"></div>
+    </div>
+
+    <!-- Top Navigation -->
+    <nav class="fixed top-0 w-full z-40 px-8 py-4 flex justify-between items-center pointer-events-auto nav-glass border-b border-brand-border">
+        <div class="flex items-center gap-4">
+            <h1 class="font-display text-2xl font-bold tracking-widest text-white cursor-pointer hover:text-brand-primary transition-colors" id="nav-home">AGRIBOT</h1>
+            <span class="text-xs text-brand-textSecondary font-mono hidden md:block">AI Powered Precision Agriculture Robot</span>
+        </div>
+        <ul class="flex gap-8 font-medium text-sm tracking-wide text-brand-textSecondary">
+            <li><button class="nav-link text-brand-primary border-b-2 border-brand-primary pb-1" data-target="Robot">Robot</button></li>
+            <li><button class="nav-link" data-target="Mechanical">Mechanical</button></li>
+            <li><button class="nav-link" data-target="Electronics">Electronics</button></li>
+            <li><button class="nav-link" data-target="Software">Software</button></li>
+            <li><button class="nav-link" data-target="Working">Working</button></li>
+            <li><button class="nav-link" data-target="BOM">BOM</button></li>
+        </ul>
+        <div class="flex gap-4">
+            <button id="btn-explode" class="luxury-btn border-brand-primary text-brand-primary"><i data-lucide="maximize-2" class="w-4 h-4 inline-block mr-2"></i> ASSEMBLE</button>
+        </div>
+    </nav>
+
+    <!-- Left Panel: Component Accordion -->
+    <aside id="left-panel" class="absolute left-6 top-24 bottom-48 w-72 z-30 pointer-events-auto glass-panel flex flex-col transform -translate-x-full opacity-0">
+        <div class="p-4 border-b border-brand-border/50">
+            <h3 class="font-display font-semibold tracking-widest text-brand-primary text-sm uppercase mb-3">COMPONENTS</h3>
+            <div class="relative">
+                <i data-lucide="search" class="w-4 h-4 absolute left-3 top-2.5 text-brand-textSecondary"></i>
+                <input type="text" id="search-input" placeholder="Search component..." class="w-full bg-black/50 border border-brand-border rounded px-9 py-2 text-sm text-white focus:outline-none focus:border-brand-primary font-mono placeholder-brand-textSecondary">
+            </div>
+        </div>
+        <div class="flex-1 overflow-y-auto p-2 custom-scrollbar" id="component-tree">
+            <!-- Injected via JS -->
+        </div>
+    </aside>
+
+    <!-- Right Panel: Intelligent Detail Card -->
+    <aside id="right-panel" class="absolute right-6 top-24 bottom-48 w-96 z-30 pointer-events-auto glass-panel flex flex-col transform translate-x-full opacity-0">
+        <div class="p-4 border-b border-brand-border/50 flex justify-between items-center bg-brand-primary/10">
+            <h3 class="font-display font-semibold tracking-widest text-brand-primary text-sm uppercase">COMPONENT DETAILS</h3>
+            <button id="btn-close-info" class="text-brand-primary hover:text-white transition-colors">
+                <i data-lucide="x" class="w-5 h-5"></i>
+            </button>
+        </div>
+        
+        <div class="p-6 overflow-y-auto custom-scrollbar flex-1 space-y-6">
+            <div class="flex items-center gap-4 border-b border-brand-border/30 pb-4">
+                <div id="info-number" class="w-12 h-12 rounded-full border-2 border-brand-primary flex items-center justify-center font-mono text-xl font-bold text-brand-primary">06</div>
+                <h2 id="info-title" class="font-display font-bold tracking-wider text-white text-lg leading-tight uppercase">SPRAY NOZZLE ASSEMBLY</h2>
+            </div>
+            
+            <div class="aspect-video w-full bg-black/40 border border-gray-800 rounded flex items-center justify-center relative overflow-hidden">
+                <i data-lucide="box" class="w-12 h-12 text-gray-700"></i>
+                <img id="info-image" src="" class="absolute inset-0 w-full h-full object-cover opacity-0 transition-opacity">
+            </div>
+
+            <div>
+                <h4 class="text-xs font-mono text-brand-primary mb-2 uppercase tracking-widest">DESCRIPTION</h4>
+                <p id="info-desc" class="text-sm text-gray-300 font-light leading-relaxed">Precision spraying nozzle used for accurate pesticide application.</p>
+            </div>
+
+            <div>
+                <h4 class="text-xs font-mono text-brand-primary mb-2 uppercase tracking-widest">SPECIFICATIONS</h4>
+                <div id="info-specs" class="space-y-2 bg-black/20 p-3 rounded border border-gray-800/50">
+                    <!-- Injected via JS -->
+                </div>
+            </div>
+
+            <div>
+                <h4 class="text-xs font-mono text-brand-primary mb-2 uppercase tracking-widest">FUNCTION</h4>
+                <p id="info-function" class="text-sm text-gray-300 font-light leading-relaxed">-</p>
+            </div>
+            
+            <div>
+                <h4 class="text-xs font-mono text-brand-primary mb-2 uppercase tracking-widest">RELATED COMPONENTS</h4>
+                <div id="info-related" class="flex flex-wrap gap-2">
+                    <!-- Injected via JS -->
+                </div>
+            </div>
+        </div>
+    </aside>
+
+    <!-- Center Bottom Toolbar -->
+    <div id="bottom-toolbar" class="absolute bottom-48 left-1/2 transform -translate-x-1/2 z-30 pointer-events-auto glass-panel px-6 py-3 flex gap-6 items-center opacity-0">
+        <span class="text-xs font-mono text-brand-textSecondary tracking-widest">DRAG TO ROTATE • SCROLL TO ZOOM</span>
+        <div class="w-px h-4 bg-gray-700"></div>
+        <button class="text-xs text-white hover:text-brand-primary transition-colors flex items-center gap-2"><i data-lucide="box-select" class="w-4 h-4"></i> X-RAY</button>
+        <button class="text-xs text-white hover:text-brand-primary transition-colors flex items-center gap-2"><i data-lucide="cpu" class="w-4 h-4"></i> AI MODE</button>
+        <button class="text-xs text-white hover:text-brand-primary transition-colors flex items-center gap-2" id="btn-reset-center"><i data-lucide="rotate-ccw" class="w-4 h-4"></i> RESET</button>
+    </div>
+
+    <!-- Bottom Status Panel -->
+    <div id="bottom-panel" class="absolute bottom-6 left-6 right-6 h-36 z-30 pointer-events-auto flex gap-4 opacity-0 transform translate-y-full">
+        <!-- Left Metrics -->
+        <div class="w-2/3 flex gap-4">
+            <div class="flex-1 glass-panel p-4 flex flex-col justify-between">
+                <h4 class="text-xs font-mono text-brand-primary uppercase tracking-widest">SYSTEM STATUS</h4>
+                <div class="flex items-center gap-2 text-green-400 text-sm">
+                    <div class="w-2 h-2 rounded-full bg-green-500 animate-pulse"></div> All Systems Operational
+                </div>
+                <svg class="w-full h-8 mt-2 text-green-500/50" viewBox="0 0 100 20" preserveAspectRatio="none">
+                    <polyline fill="none" stroke="currentColor" stroke-width="2" points="0,10 20,10 25,2 30,18 35,10 100,10" />
+                </svg>
+            </div>
+            <div class="flex-1 glass-panel p-4 flex flex-col justify-center">
+                <h4 class="text-xs font-mono text-brand-primary uppercase tracking-widest mb-3">POWER SYSTEM</h4>
+                <div class="flex items-center gap-4">
+                    <i data-lucide="battery-charging" class="w-8 h-8 text-green-400"></i>
+                    <div>
+                        <div class="text-sm text-white">24V / 10Ah</div>
+                        <div class="text-xl font-bold font-mono text-green-400">100%</div>
+                    </div>
+                </div>
+            </div>
+            <div class="flex-1 glass-panel p-4 flex flex-col justify-center">
+                <h4 class="text-xs font-mono text-brand-primary uppercase tracking-widest mb-3">AI SYSTEM</h4>
+                <div class="flex items-center gap-4">
+                    <i data-lucide="brain-circuit" class="w-8 h-8 text-brand-primary"></i>
+                    <div>
+                        <div class="text-sm text-white">YOLOv8 + OpenCV</div>
+                        <div class="text-sm font-mono text-brand-primary">Active</div>
+                    </div>
+                </div>
+            </div>
+            <div class="flex-1 glass-panel p-4 flex flex-col justify-center">
+                <h4 class="text-xs font-mono text-brand-primary uppercase tracking-widest mb-3">ROBOT INFO</h4>
+                <div class="text-xs text-gray-300 font-mono space-y-1">
+                    <div>Weight : 15.2 kg</div>
+                    <div>Max Speed : 4.5 km/h</div>
+                    <div>Load Cap : 30 kg</div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Right Carousel (Hierarchy Context) -->
+        <div class="w-1/3 glass-panel p-4 flex flex-col relative overflow-hidden">
+            <h4 class="text-xs font-mono text-brand-primary uppercase tracking-widest mb-2 z-10">ACTIVE ASSEMBLY</h4>
+            <div id="assembly-tree" class="font-mono text-xs text-brand-textSecondary whitespace-pre z-10 overflow-auto custom-scrollbar">
+Robot
+ └── Standby
+            </div>
+            <i data-lucide="hexagon" class="absolute -right-10 -bottom-10 w-48 h-48 text-brand-primary opacity-5"></i>
+        </div>
+    </div>
+
+    <!-- UI Brackets -->
+    <div class="pointer-events-none absolute top-24 left-6 w-8 h-8 border-t-2 border-l-2 border-brand-primary opacity-50 z-20"></div>
+    <div class="pointer-events-none absolute top-24 right-6 w-8 h-8 border-t-2 border-r-2 border-brand-primary opacity-50 z-20"></div>
+    <div class="pointer-events-none absolute bottom-48 left-6 w-8 h-8 border-b-2 border-l-2 border-brand-primary opacity-50 z-20"></div>
+    <div class="pointer-events-none absolute bottom-48 right-6 w-8 h-8 border-b-2 border-r-2 border-brand-primary opacity-50 z-20"></div>
+
+    <script type="module" src="script.js"></script>
+</body>
+</html>

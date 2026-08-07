@@ -1,0 +1,261 @@
+:root {
+    --bg-color: #050505;
+    --primary: #00C2FF;
+    --accent: #00E5FF;
+    --panel-bg: rgba(10, 15, 22, 0.65);
+    --panel-border: rgba(0, 194, 255, 0.2);
+}
+
+body {
+    margin: 0;
+    background-color: var(--bg-color);
+    color: white;
+}
+
+/* Base Utility for Glassmorphism */
+.glass-panel {
+    background: var(--panel-bg);
+    border: 1px solid var(--panel-border);
+    border-radius: 12px;
+    backdrop-filter: blur(16px);
+    -webkit-backdrop-filter: blur(16px);
+    box-shadow: 0 4px 30px rgba(0, 0, 0, 0.5), inset 0 1px 0 rgba(255, 255, 255, 0.1);
+}
+
+.nav-glass {
+    background: linear-gradient(to bottom, rgba(5,5,5,0.9) 0%, rgba(5,5,5,0) 100%);
+    backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(8px);
+    border-bottom: 1px solid rgba(0, 194, 255, 0.1);
+}
+
+/* Buttons */
+.luxury-btn {
+    padding: 0.5rem 1.5rem;
+    background: rgba(0, 194, 255, 0.1);
+    border: 1px solid rgba(0, 194, 255, 0.3);
+    border-radius: 6px;
+    color: white;
+    font-family: 'Inter', sans-serif;
+    font-size: 0.8rem;
+    font-weight: 500;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+    backdrop-filter: blur(8px);
+    cursor: pointer;
+}
+
+.luxury-btn:hover, .luxury-btn.active {
+    background: rgba(0, 194, 255, 0.25);
+    border-color: var(--primary);
+    box-shadow: 0 0 20px rgba(0, 194, 255, 0.4);
+    transform: translateY(-1px);
+}
+
+.nav-link {
+    position: relative;
+    padding: 0.5rem 0;
+    transition: color 0.3s ease;
+}
+
+.nav-link:hover {
+    color: var(--primary);
+}
+
+.nav-link::after {
+    content: '';
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    width: 0%;
+    height: 1px;
+    background: var(--primary);
+    transition: width 0.3s ease;
+}
+
+.nav-link:hover::after {
+    width: 100%;
+}
+
+/* Backgrounds */
+.grid-background {
+    background-image: 
+      linear-gradient(var(--panel-border) 1px, transparent 1px),
+      linear-gradient(90deg, var(--panel-border) 1px, transparent 1px);
+    background-size: 50px 50px;
+    background-position: center center;
+    mask-image: radial-gradient(circle at center, black 30%, transparent 80%);
+    -webkit-mask-image: radial-gradient(circle at center, black 30%, transparent 80%);
+}
+
+.radial-vignette {
+    background: radial-gradient(circle at center, transparent 40%, var(--bg-color) 100%);
+}
+
+/* Custom Scrollbar */
+.custom-scrollbar::-webkit-scrollbar {
+    width: 3px;
+}
+.custom-scrollbar::-webkit-scrollbar-track {
+    background: transparent;
+}
+.custom-scrollbar::-webkit-scrollbar-thumb {
+    background: rgba(0, 194, 255, 0.3);
+    border-radius: 4px;
+}
+.custom-scrollbar::-webkit-scrollbar-thumb:hover {
+    background: rgba(0, 194, 255, 0.8);
+}
+
+/* Tree Component Styling */
+.tree-item {
+    padding: 0.5rem 1rem;
+    margin-bottom: 0.25rem;
+    border-radius: 6px;
+    cursor: pointer;
+    font-size: 0.85rem;
+    color: #9ca3af;
+    transition: all 0.3s ease;
+    border-left: 2px solid transparent;
+}
+.tree-item:hover {
+    background-color: rgba(0, 194, 255, 0.05);
+    color: white;
+    border-left-color: rgba(0, 194, 255, 0.5);
+}
+.tree-item.active {
+    background-color: rgba(0, 194, 255, 0.1);
+    color: var(--primary);
+    border-left-color: var(--primary);
+}
+
+/* Animations */
+.animate-spin-slow {
+    animation: spin 8s linear infinite;
+}
+
+@keyframes spin {
+    from { transform: rotate(0deg); }
+    to { transform: rotate(360deg); }
+}
+
+.scan-line {
+    background: linear-gradient(to bottom, transparent, rgba(0, 194, 255, 0.2) 50%, transparent);
+    background-size: 100% 8px;
+    height: 100%;
+    width: 100%;
+    animation: scan 4s linear infinite;
+    opacity: 0.5;
+}
+
+@keyframes scan {
+    0% { transform: translateY(-100%); }
+    100% { transform: translateY(100%); }
+}
+
+
+/* Smart Callout Label Styling */
+.smart-label-container {
+    position: absolute;
+    pointer-events: none;
+    transform: translate(-50%, -50%); /* Centered on the point */
+    z-index: 100;
+}
+
+.smart-label-box {
+    background: rgba(10, 15, 22, 0.85);
+    border: 1px solid rgba(0, 194, 255, 0.4);
+    border-radius: 8px;
+    padding: 8px 12px;
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    box-shadow: 0 0 15px rgba(0, 194, 255, 0.15), inset 0 0 10px rgba(0, 194, 255, 0.05);
+    pointer-events: auto;
+    cursor: pointer;
+    transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    transform-origin: left center;
+}
+
+.smart-label-box:hover {
+    border-color: rgba(0, 194, 255, 1);
+    box-shadow: 0 0 25px rgba(0, 194, 255, 0.3), inset 0 0 15px rgba(0, 194, 255, 0.2);
+    transform: scale(1.05);
+}
+
+.smart-label-number {
+    font-family: "JetBrains Mono", monospace;
+    font-size: 0.75rem;
+    color: #00C2FF;
+    font-weight: 700;
+    padding-right: 8px;
+    border-right: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+.smart-label-text {
+    font-family: "Inter", sans-serif;
+    font-size: 0.8rem;
+    color: white;
+    font-weight: 500;
+    white-space: nowrap;
+}
+
+/* Pulsing Anchor Point */
+.smart-anchor {
+    position: absolute;
+    width: 8px;
+    height: 8px;
+    background: #00C2FF;
+    border-radius: 50%;
+    transform: translate(-50%, -50%);
+    box-shadow: 0 0 10px #00C2FF;
+}
+
+.smart-anchor::after {
+    content: "";
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    width: 24px;
+    height: 24px;
+    border: 1px solid #00C2FF;
+    border-radius: 50%;
+    transform: translate(-50%, -50%);
+    animation: pulse-ring 2s cubic-bezier(0.215, 0.61, 0.355, 1) infinite;
+}
+
+@keyframes pulse-ring {
+    0% { transform: translate(-50%, -50%) scale(0.3); opacity: 1; }
+    80%, 100% { transform: translate(-50%, -50%) scale(1.5); opacity: 0; }
+}
+
+/* SVG Leader Lines */
+#hud-svg-layer {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    pointer-events: none;
+    z-index: 50;
+}
+
+.leader-line {
+    fill: none;
+    stroke: rgba(0, 194, 255, 0.6);
+    stroke-width: 1.5;
+    stroke-dasharray: 1000; /* For drawing animation */
+    stroke-dashoffset: 0;
+    filter: drop-shadow(0 0 4px rgba(0, 194, 255, 0.8));
+    transition: stroke 0.3s ease;
+}
+
+.leader-line.highlight {
+    stroke: rgba(0, 255, 255, 1);
+    stroke-width: 2;
+    filter: drop-shadow(0 0 8px rgba(0, 255, 255, 1));
+}
+
